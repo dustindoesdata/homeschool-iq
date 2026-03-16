@@ -99,7 +99,7 @@ homeschool-iq/
 │
 ├── README.md                   # You are here
 ├── requirements.txt            # Pinned dependencies
-├── Makefile                    # scrape · validate · transform · load · dashboard · rebuild
+├── Makefile                    # scrape · validate · transform · load · dashboard · rebuild · backup
 ├── .gitignore
 ├── LICENSE
 ├── CONTRIBUTING.md
@@ -113,7 +113,8 @@ homeschool-iq/
 │   ├── raw/                    # Timestamped scraped output — never overwritten
 │   ├── cleaned/                # Validated, standardized, tagged records
 │   ├── sample/                 # 20–30 seed records — repo runs immediately on clone
-│   └── logs/                   # Per-run manifests: records written, failures, duration
+│   ├── logs/                   # Per-run manifests: records written, failures, duration
+│   └── quarantine/             # Records that failed validation — held for manual review
 │
 ├── validation/
 │   └── validate_raw.py         # Assertion gate between raw and cleaned
@@ -134,6 +135,7 @@ homeschool-iq/
 │   └── app.py                  # Streamlit app — the public deliverable
 │
 └── docs/
+    ├── cleaning_rules.md       # 9 transformation and validation rules for clean_data.py
     ├── data_dictionary.md      # Every field defined
     └── findings.md             # Plain-language conclusions — a father's interpretation
 ```
@@ -159,6 +161,9 @@ stats         -- Individual data points extracted from sources
               -- selection_bias_flag: no documented control group
               -- semantic_cluster  : peer_interaction · clique_formation ·
               --                     adult_outcomes · anxiety_rates · conflict_resolution
+              -- value_type        : percentile · mean · median · rate · count · dollar · ratio
+              -- sample_size       : NULL = not reported = low confidence
+              -- conflicts_with    : references a contradictory stat.id
 ```
 
 The `era` field is intentional. Pre-2012 homeschooling and post-2020 homeschooling are demographically different populations. Aggregating across that divide produces noise. Every chart in the dashboard respects the distinction.
@@ -167,15 +172,20 @@ The `era` field is intentional. Pre-2012 homeschooling and post-2020 homeschooli
 
 ## Data Sources
 
-| Source | Type | Grade |
-|---|---|---|
-| [NCES — National Center for Education Statistics](https://nces.ed.gov) | Government | A |
-| [U.S. Census Bureau](https://census.gov) | Government | A |
-| [NHERI — National Home Education Research Institute](https://nheri.org) | Research | B |
-| [HSLDA — Homeschool Legal Defense Association](https://hslda.org/research) | Advocacy | C |
-| [Education Week](https://edweek.org) | News | C |
+| Source | Type | Skew | Grade |
+|---|---|---|---|
+| [NCES — Homeschooling in the United States](https://nces.ed.gov/programs/digest/d22/tables/dt22_206.10.asp) | Government | Neutral | A |
+| [NCES — Parent and Family Involvement Survey](https://nces.ed.gov/nhes/homeschooling.asp) | Government | Neutral | A |
+| [NCES — Per Pupil Expenditure](https://nces.ed.gov/fastfacts/display.asp?id=66) | Government | Neutral | A |
+| [U.S. Census Bureau — Household Pulse Survey](https://census.gov) | Government | Neutral | A |
+| [NHERI — Academic Achievement Research](https://nheri.org/research-facts-on-homeschooling/) | Peer-Reviewed | Positive | B |
+| [NHERI — Social-Emotional Development](https://nheri.org/homeschool-researchers/) | Peer-Reviewed | Positive | B |
+| [PLOS ONE — Social Development Study](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177391) | Peer-Reviewed | Neutral | A |
+| [HSLDA — Homeschool Academic Stats](https://hslda.org/post/study-shows-homeschoolers-perform-better-academically) | Advocacy | Positive | C |
+| [Education Week — Homeschooling Coverage](https://edweek.org/teaching-learning/homeschooling) | News | Critical | C |
+| [Education Week — Oversight and Abuse](https://edweek.org/policy-politics/homeschooling-regulations) | News | Critical | C |
 
-Sources are balanced deliberately — positive, critical, and neutral voices in proportion. A corpus seeded only from pro-homeschool sources produces a pro-homeschool result regardless of how well the cleaning pipeline is written. Balance is a data engineering decision, not a content one.
+10 sources across 4 credibility tiers. No single tier exceeds 40% of the corpus. Sources are balanced deliberately — positive, critical, and neutral voices in proportion. Balance is a data engineering decision, not a content one.
 
 ---
 
@@ -183,7 +193,7 @@ Sources are balanced deliberately — positive, critical, and neutral voices in 
 
 The conventional critique of homeschooling — *"what about socialization?"* — deserves a data-driven answer, not a defensive one.
 
-The research literature uses "socialization" to describe at least five distinct constructs: peer interaction frequency, conflict resolution skill, comfort with authority, heterogeneous friendship networks, and adult social functioning. These are not the same thing and they do not all point in the same direction.
+The research literature uses "socialization" to describe at least five distinct constructs: peer interaction frequency, conflict resolution skill, clique formation and exclusion dynamics, social anxiety rates, and adult social functioning. These are not the same thing and they do not all point in the same direction.
 
 This dashboard examines the socialization question as what it actually is: a **label definition problem**. Age-segregated school environments produce peer interaction. They also produce clique formation, in-group dynamics, and social anxiety at documented rates. Homeschooled children who engage co-ops, community programs, and mixed-age environments develop a different social profile — not an absent one.
 
@@ -227,6 +237,9 @@ make transform    # Standardize, tag, and grade records
 make load         # Load cleaned data into SQLite
 make dashboard    # Launch Streamlit locally
 
+# Backup the database before any destructive operation
+make backup
+
 # Rebuild the database from scratch at any time
 make rebuild
 ```
@@ -238,16 +251,18 @@ The `data/sample/` folder contains seed records so the dashboard runs immediatel
 ## Build Progress
 
 ### Phase 0 — Lock the Contracts
-- [ ] Schema finalized
-- [ ] `sources.json` seed list built and balanced
-- [ ] Dashboard sections agreed
-- [ ] `docs/data_dictionary.md` skeleton written
+- [x] Schema finalized — v1.0.0
+- [x] `sources.json` seed list built and balanced — 10 sources across 4 credibility tiers
+- [x] Dashboard sections agreed — Good · Hard Truths · Nuance · Data
+- [x] `docs/data_dictionary.md` complete
+- [x] `docs/cleaning_rules.md` complete — 9 transformation and validation rules
+- [x] `docs/findings.md` skeleton complete — 5 sections, claims to test defined
 
 ### Phase 1 — Scaffold
 - [ ] Repo initialized and pushed to GitHub
 - [ ] Folder structure in place
 - [ ] `requirements.txt` with pinned versions
-- [ ] `Makefile` with all six targets
+- [ ] `Makefile` with all seven targets (scrape · validate · transform · load · dashboard · rebuild · backup)
 - [ ] `LICENSE` and `CONTRIBUTING.md` committed
 - [ ] GitHub Actions lint workflow active
 - [ ] `data/sample/` seed records committed
@@ -262,8 +277,8 @@ The `data/sample/` folder contains seed records so the dashboard runs immediatel
 - [ ] Validation report written alongside run manifest
 
 ### Phase 4 — Store
-- [ ] `sql/schema.sql` written
-- [ ] `sql/load_data.py` written
+- [ ] `sql/schema.sql` verified executable — runs cleanly against SQLite
+- [ ] `sql/load_data.py` written — loads cleaned CSVs into `homeschool.db`
 - [ ] `homeschool.db` committed
 - [ ] `sql/seed_data.sql` INSERT dump committed
 
