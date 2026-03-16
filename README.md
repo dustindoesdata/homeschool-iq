@@ -1,7 +1,7 @@
 # 🏠 HomeschoolIQ
 
 ### A full data engineering pipeline exploring homeschool vs. public school outcomes.
-### The good. The hard truths. The nuance. All of it — in the data.
+
 
 [![Python](https://img.shields.io/badge/Python_3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
@@ -14,7 +14,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![Last Updated](https://img.shields.io/badge/Last%20Updated-Coming%20Soon-lightgrey?style=flat-square)]()
 
-> *Built by a homeschooling father who wanted the truth — not the talking points.*
+> *Built by a homeschooling community who wanted the truth.*
 
 ---
 
@@ -22,12 +22,12 @@
 
 HomeschoolIQ is an **end-to-end data pipeline** that collects, stores, cleans, and visualizes research-backed statistics on homeschool and public school outcomes.
 
-It covers academic performance, social development, cost, and long-term outcomes — drawing from government data, peer-reviewed research, advocacy organizations, and critical news coverage. Every data point is sourced, graded for credibility, and tagged for bias so the final dashboard shows the full picture honestly.
+It covers academic performance, social development, cost, and long-term outcomes - drawing from government data, peer-reviewed research, advocacy organizations, and critical news coverage. Every data point is sourced, graded for credibility, and tagged for bias so the final dashboard shows the full picture honestly.
 
 This project exists for two reasons:
 
-- **As a homeschooling father** — I wanted a data-driven foundation built from evidence, not advocacy. That means engaging the hard questions head-on, not avoiding them.
-- **As a data engineer** — I wanted a portfolio project that exercises the complete pipeline: ingestion → validation → storage → cleaning → analysis → visualization → deployment.
+- **As a homeschooling father** - I wanted a data-driven foundation built from evidence, not advocacy. That means engaging the hard questions head-on, not avoiding them.
+- **As a data engineer** - I wanted a portfolio project that exercises the complete pipeline: ingestion → validation → storage → cleaning → analysis → visualization → deployment.
 
 ---
 
