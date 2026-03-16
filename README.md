@@ -185,13 +185,13 @@ The `era` field is intentional. Pre-2012 homeschooling and post-2020 homeschooli
 | [Education Week — Homeschooling Coverage](https://edweek.org/teaching-learning/homeschooling) | News | Critical | C |
 | [Education Week — Oversight and Abuse](https://edweek.org/policy-politics/homeschooling-regulations) | News | Critical | C |
 
-10 sources across 4 credibility tiers. No single tier exceeds 40% of the corpus. Sources are balanced deliberately — positive, critical, and neutral voices in proportion. Balance is a data engineering decision, not a content one.
+10 sources across 4 credibility tiers. No single tier exceeds 40% of the corpus. Sources are balanced deliberately: positive, critical, and neutral voices in proportion. Balance is a data engineering decision, to remove confirmation bias.
 
 ---
 
 ## On the Socialization Question
 
-The conventional critique of homeschooling — *"what about socialization?"* — deserves a data-driven answer, not a defensive one.
+The conventional critique of homeschooling *"what about socialization?"*  deserves a data-driven answer, not a defensive one.
 
 The research literature uses "socialization" to describe at least five distinct constructs: peer interaction frequency, conflict resolution skill, clique formation and exclusion dynamics, social anxiety rates, and adult social functioning. These are not the same thing and they do not all point in the same direction.
 
@@ -244,7 +244,7 @@ make backup
 make rebuild
 ```
 
-The `data/sample/` folder contains seed records so the dashboard runs immediately on clone — no scraping required to see the project working.
+The `data/sample/` folder contains seed records so the dashboard runs immediately on clone, no scraping required to see the project working.
 
 ---
 
