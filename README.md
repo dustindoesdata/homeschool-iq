@@ -314,7 +314,7 @@ Non-technical contributions are just as valuable as code. If you know a credible
 
 ## License
 
-MIT — use it, fork it, build on it. If this helps another homeschooling family make a more informed decision, that's the whole point.
+MIT - use it, fork it, build on it. If this helps another homeschooling family make a more informed decision, that's the whole point.
 
 ---
 
