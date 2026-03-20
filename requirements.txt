@@ -1,0 +1,31 @@
+# HomeschoolIQ — Python Dependencies
+# All versions pinned for reproducibility.
+# Update versions intentionally — never let them float.
+# Install: pip install -r requirements.txt
+
+# ── Scraping ──────────────────────────────────────────────────
+requests==2.31.0
+beautifulsoup4==4.12.3
+lxml==5.1.0                  # HTML parser backend for BeautifulSoup
+pdfplumber==0.10.4            # PDF extraction — deferred to post-Phase 2
+
+# ── Data Cleaning ─────────────────────────────────────────────
+pandas==2.2.1
+numpy==1.26.4
+
+# ── Database ──────────────────────────────────────────────────
+# sqlite3 is Python stdlib — no install required
+
+# ── Analysis ──────────────────────────────────────────────────
+jupyter==1.0.0
+notebook==7.1.2
+ipykernel==6.29.3
+
+# ── Visualization ─────────────────────────────────────────────
+plotly==5.20.0
+
+# ── Dashboard ─────────────────────────────────────────────────
+streamlit==1.33.0
+
+# ── Code Quality ──────────────────────────────────────────────
+flake8==7.0.0                 # Linting — runs via GitHub Actions on every push
