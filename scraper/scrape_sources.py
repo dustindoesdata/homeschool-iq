@@ -16,7 +16,7 @@ import json
 import os
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 from bs4 import BeautifulSoup
@@ -149,7 +149,7 @@ def scrape_source(source):
         "status_code":         response.status_code,
         "raw_text":            text,
         "char_count":          len(text),
-        "scraped_at":          datetime.utcnow().isoformat() + "Z"
+        "scraped_at":          datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -187,7 +187,7 @@ def write_manifest(manifest, run_timestamp):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    run_start    = datetime.utcnow()
+    run_start    = datetime.now(timezone.utc)
     run_timestamp = run_start.strftime("%Y_%m_%d_%H%M%S")
 
     log.info("=" * 60)
@@ -229,7 +229,7 @@ def main():
     output_path = write_output(results, run_timestamp)
 
     # Build and write manifest
-    run_end = datetime.utcnow()
+    run_end = datetime.now(timezone.utc)
     manifest = {
         "run_timestamp":      run_timestamp,
         "run_start":          run_start.isoformat() + "Z",
