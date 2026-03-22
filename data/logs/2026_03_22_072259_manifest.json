@@ -1,0 +1,33 @@
+{
+  "run_timestamp": "2026_03_22_072259",
+  "run_start": "2026-03-22T07:22:59Z",
+  "run_end": "2026-03-22T07:24:14Z",
+  "duration_seconds": 75.5,
+  "sources_attempted": 10,
+  "sources_succeeded": 6,
+  "sources_failed": 4,
+  "sources_skipped": 0,
+  "output_file": "data/raw/2026_03_22_072259.json",
+  "failed_sources": [
+    {
+      "source_id": "nheri_002",
+      "url": "https://www.nheri.org/homeschool-researchers/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "hslda_001",
+      "url": "https://hslda.org/post/study-shows-homeschoolers-perform-better-academically",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "edweek_001",
+      "url": "https://www.edweek.org/teaching-learning/homeschooling",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "edweek_002",
+      "url": "https://www.edweek.org/policy-politics/homeschooling-regulations",
+      "reason": "all retries exhausted"
+    }
+  ]
+}
