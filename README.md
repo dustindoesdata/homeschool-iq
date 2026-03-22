@@ -114,7 +114,9 @@ quality bar.
 | Phase | Status | Description |
 |---|---|---|
 | Research Design | ✅ Complete | Questions defined, sources identified, data model built |
-| Data Collection | 🔄 In Progress | Scraping research from all 10 sources |
+| Data Collection | ✅ Complete | 6 of 10 sources scraped — 4 dead URLs being resolved |
+| Data Validation | ✅ Complete | 6/6 records passed quality checks |
+| Data Cleaning | 🔄 In Progress | Extracting and structuring stats from validated data |
 | Analysis | ⬜ Upcoming | EDA, findings written alongside the data |
 | Dashboard | ⬜ Upcoming | Interactive charts, filters, source transparency |
 | Launch | ⬜ Upcoming | Live on Streamlit Community Cloud |
@@ -123,10 +125,67 @@ quality bar.
 
 ## For Developers
 
-The technical documentation lives in the `docs/` folder:
+### Running the Pipeline
 
-- [`docs/data_dictionary.md`](docs/data_dictionary.md) — every field defined
-- [`docs/cleaning_rules.md`](docs/cleaning_rules.md) — pipeline transformation rules
+Run each step in order from the repo root:
+
+```bash
+# Step 1 — Collect data from all active sources
+python3 scraper/scrape_sources.py
+
+# Step 2 — Validate scraped data quality
+python3 validation/validate_raw.py
+
+# Step 3 — Extract and structure stats
+python3 cleaning/clean_data.py
+```
+
+Each step feeds the next. Output lands in `data/` at each stage:
+
+| Step | Output location | What it contains |
+|---|---|---|
+| Scrape | `data/raw/` | Raw page text from each source |
+| Validate | `data/cleaned/` | Validated records ready for cleaning |
+| Clean | `data/cleaned/` | Structured stats CSV ready for the database |
+| Logs | `data/logs/` | Run manifests and validation reports |
+
+### Project Structure
+
+```
+homeschool-iq/
+├── scraper/
+│   ├── scrape_sources.py   # Fetches pages from all active sources
+│   └── sources.json        # Source list with credibility grades
+├── validation/
+│   └── validate_raw.py     # Quality checks on scraped output
+├── cleaning/
+│   └── clean_data.py       # Extracts and structures stat sentences
+├── sql/
+│   └── schema.sql          # Database schema
+├── data/
+│   ├── raw/                # Timestamped scrape output
+│   ├── cleaned/            # Validated records and structured stats
+│   ├── logs/               # Run manifests and validation reports
+│   └── quarantine/         # Records that failed validation
+├── docs/
+│   ├── data_dictionary.md  # Every field defined
+│   ├── cleaning_rules.md   # Pipeline transformation rules
+│   └── findings.md         # The analytical framework
+├── requirements.txt
+├── CONTRIBUTING.md
+└── README.md
+```
+
+### Install Dependencies
+
+```bash
+pip3 install -r requirements.txt
+```
+
+### Technical Documentation
+
+- [`docs/data_dictionary.md`](docs/data_dictionary.md) — every database field defined
+- [`docs/cleaning_rules.md`](docs/cleaning_rules.md) — all pipeline transformation rules
 - [`docs/findings.md`](docs/findings.md) — the analytical framework
 
 The pipeline runs on Python, SQLite, pandas, and Streamlit.
