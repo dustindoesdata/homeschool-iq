@@ -1,0 +1,11 @@
+{
+  "validated_at": "2026-03-22T05:56:53.783320+00:00",
+  "scrape_file": "data/raw/2026_03_20_055508.json",
+  "total_records": 10,
+  "succeeded": 6,
+  "failed_scrapes": 4,
+  "skipped_scrapes": 0,
+  "passed": 6,
+  "quarantined": 0,
+  "quarantine_detail": []
+}
