@@ -1,20 +1,41 @@
 {
   "_readme": {
-    "description": "HomeschoolIQ — Seed source list for the scraper pipeline.",
+    "description": "HomeschoolIQ \u2014 Seed source list for the scraper pipeline.",
     "file": "scraper/sources.json",
-    "required_fields": ["id", "publisher", "title", "url", "credibility_tier", "methodology_grade", "expected_sentiment_skew", "scrape_mode", "active"],
-    "optional_fields": ["notes"],
-    "credibility_tier_values": ["government", "peer_reviewed", "advocacy", "news"],
+    "required_fields": [
+      "id",
+      "publisher",
+      "title",
+      "url",
+      "credibility_tier",
+      "methodology_grade",
+      "expected_sentiment_skew",
+      "scrape_mode",
+      "active"
+    ],
+    "optional_fields": [
+      "notes"
+    ],
+    "credibility_tier_values": [
+      "government",
+      "peer_reviewed",
+      "advocacy",
+      "news"
+    ],
     "methodology_grade_values": {
-      "A": "Randomized or controlled study — documented control group",
+      "A": "Randomized or controlled study \u2014 documented control group",
       "B": "Large sample, some controls documented",
       "C": "Self-selected sample, no controls, or advocacy-funded without disclosure",
       "D": "Anecdotal, opinion piece, or undisclosed methodology"
     },
-    "expected_sentiment_skew_values": ["positive", "critical", "neutral"],
+    "expected_sentiment_skew_values": [
+      "positive",
+      "critical",
+      "neutral"
+    ],
     "scrape_mode_values": {
       "html": "Standard requests + BeautifulSoup scrape",
-      "pdf":  "pdfplumber extraction — defer until HTML sources are complete"
+      "pdf": "pdfplumber extraction \u2014 defer until HTML sources are complete"
     },
     "balance_rule": "Minimum 2 sources per tier. No single tier exceeds 40% of active sources. Positive, critical, and neutral voices in deliberate proportion.",
     "current_tier_counts": {
@@ -26,138 +47,146 @@
       "note": "Government is at the 40% ceiling (4/10). Do not add government sources without removing or deactivating another. validate_raw.py asserts this balance rule on every run."
     }
   },
-
   "sources": [
-
     {
       "id": "nces_001",
       "publisher": "National Center for Education Statistics",
-      "title": "NCES — Homeschooling in the United States",
+      "title": "NCES \u2014 Homeschooling in the United States",
       "url": "https://nces.ed.gov/programs/digest/d22/tables/dt22_206.10.asp",
       "credibility_tier": "government",
       "methodology_grade": "A",
       "expected_sentiment_skew": "neutral",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Federal survey data on homeschool enrollment and demographics. Primary source for enrollment trend stats."
+      "notes": "Federal survey data on homeschool enrollment and demographics. Primary source for enrollment trend stats.",
+      "data_collection_year": 2020,
+      "published_date": "2022-01-01"
     },
-
     {
       "id": "nces_002",
       "publisher": "National Center for Education Statistics",
-      "title": "NCES — Parent and Family Involvement Survey",
+      "title": "NCES \u2014 Parent and Family Involvement Survey",
       "url": "https://nces.ed.gov/nhes/homeschooling.asp",
       "credibility_tier": "government",
       "methodology_grade": "A",
       "expected_sentiment_skew": "neutral",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Reasons families choose homeschooling — safety, religion, dissatisfaction with schools. Useful for demographic and motivation breakdowns."
+      "notes": "Reasons families choose homeschooling \u2014 safety, religion, dissatisfaction with schools. Useful for demographic and motivation breakdowns.",
+      "data_collection_year": 2016,
+      "published_date": "2019-06-01"
     },
-
     {
       "id": "nces_003",
       "publisher": "National Center for Education Statistics",
-      "title": "NCES — Per Pupil Expenditure in Public Schools",
+      "title": "NCES \u2014 Per Pupil Expenditure in Public Schools",
       "url": "https://nces.ed.gov/fastfacts/display.asp?id=66",
       "credibility_tier": "government",
       "methodology_grade": "A",
       "expected_sentiment_skew": "neutral",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Primary source for Cost category. Public per-pupil expenditure figures for comparison against family homeschool costs. Pairs with family cost estimates from NHERI and HSLDA."
+      "notes": "Primary source for Cost category. Public per-pupil expenditure figures for comparison against family homeschool costs. Pairs with family cost estimates from NHERI and HSLDA.",
+      "data_collection_year": 2021,
+      "published_date": "2023-01-01"
     },
-
     {
       "id": "census_001",
       "publisher": "U.S. Census Bureau",
-      "title": "Census — Household Pulse Survey, Homeschooling",
+      "title": "Census \u2014 Household Pulse Survey, Homeschooling",
       "url": "https://www.census.gov/library/stories/2021/03/homeschooling-on-the-rise-during-covid-19-pandemic.html",
       "credibility_tier": "government",
       "methodology_grade": "A",
       "expected_sentiment_skew": "neutral",
       "scrape_mode": "html",
       "active": true,
-      "notes": "COVID-era homeschool growth data. Key source for post-2020 era enrollment surge stats."
+      "notes": "COVID-era homeschool growth data. Key source for post-2020 era enrollment surge stats.",
+      "data_collection_year": 2020,
+      "published_date": "2021-03-22"
     },
-
     {
       "id": "nheri_001",
       "publisher": "National Home Education Research Institute",
-      "title": "NHERI — Academic Achievement Research",
+      "title": "NHERI \u2014 Academic Achievement Research",
       "url": "https://www.nheri.org/research-facts-on-homeschooling/",
       "credibility_tier": "peer_reviewed",
       "methodology_grade": "B",
       "expected_sentiment_skew": "positive",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Brian Ray's aggregated research findings. Widely cited but uses self-selected samples — selection_bias_flag should default to 1 for most stats from this source."
+      "notes": "Brian Ray's aggregated research findings. Widely cited but uses self-selected samples \u2014 selection_bias_flag should default to 1 for most stats from this source.",
+      "data_collection_year": 2019,
+      "published_date": "2021-01-01"
     },
-
     {
       "id": "nheri_002",
       "publisher": "National Home Education Research Institute",
-      "title": "NHERI — Social-Emotional Development Research",
+      "title": "NHERI \u2014 Social-Emotional Development Research",
       "url": "https://www.nheri.org/homeschool-researchers/",
       "credibility_tier": "peer_reviewed",
       "methodology_grade": "B",
       "expected_sentiment_skew": "positive",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Social-emotional and civic outcomes research. Key source for semantic_cluster tagging. Apply selection_bias_flag — self-selected sample."
+      "notes": "Social-emotional and civic outcomes research. Key source for semantic_cluster tagging. Apply selection_bias_flag \u2014 self-selected sample.",
+      "data_collection_year": 2018,
+      "published_date": "2020-01-01"
     },
-
     {
       "id": "plos_001",
       "publisher": "PLOS ONE",
-      "title": "PLOS ONE — Social Development in Homeschooled vs. Traditionally Schooled Children",
+      "title": "PLOS ONE \u2014 Social Development in Homeschooled vs. Traditionally Schooled Children",
       "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177391",
       "credibility_tier": "peer_reviewed",
       "methodology_grade": "A",
       "expected_sentiment_skew": "neutral",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Peer-reviewed social development study with documented methodology. Primary source for semantic_cluster stats. Provides the controlled comparison the socialization argument requires to be credible."
+      "notes": "Peer-reviewed social development study with documented methodology. Primary source for semantic_cluster stats. Provides the controlled comparison the socialization argument requires to be credible.",
+      "data_collection_year": 2016,
+      "published_date": "2017-05-31"
     },
-
     {
       "id": "hslda_001",
       "publisher": "Home School Legal Defense Association",
-      "title": "HSLDA — Homeschool Academic Stats",
+      "title": "HSLDA \u2014 Homeschool Academic Stats",
       "url": "https://hslda.org/post/study-shows-homeschoolers-perform-better-academically",
       "credibility_tier": "advocacy",
       "methodology_grade": "C",
       "expected_sentiment_skew": "positive",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Advocacy organization with institutional interest in positive findings. Stats valuable but require selection_bias_flag and should be weighed against Tier A/B sources."
+      "notes": "Advocacy organization with institutional interest in positive findings. Stats valuable but require selection_bias_flag and should be weighed against Tier A/B sources.",
+      "data_collection_year": 2018,
+      "published_date": "2020-06-01"
     },
-
     {
       "id": "edweek_001",
       "publisher": "Education Week",
-      "title": "Education Week — Homeschooling Coverage",
+      "title": "Education Week \u2014 Homeschooling Coverage",
       "url": "https://www.edweek.org/teaching-learning/homeschooling",
       "credibility_tier": "news",
       "methodology_grade": "C",
       "expected_sentiment_skew": "critical",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Primary critical coverage source. Captures concerns, negative findings, and policy debates not represented in advocacy sources. Essential for balance."
+      "notes": "Primary critical coverage source. Captures concerns, negative findings, and policy debates not represented in advocacy sources. Essential for balance.",
+      "data_collection_year": 2022,
+      "published_date": "2023-01-01"
     },
-
     {
       "id": "edweek_002",
       "publisher": "Education Week",
-      "title": "Education Week — Homeschool Oversight and Abuse Coverage",
+      "title": "Education Week \u2014 Homeschool Oversight and Abuse Coverage",
       "url": "https://www.edweek.org/policy-politics/homeschooling-regulations",
       "credibility_tier": "news",
       "methodology_grade": "C",
       "expected_sentiment_skew": "critical",
       "scrape_mode": "html",
       "active": true,
-      "notes": "Covers regulatory gaps and documented abuse cases. This is the Critique category source. Uncomfortable but necessary for intellectual honesty."
+      "notes": "Covers regulatory gaps and documented abuse cases. This is the Critique category source. Uncomfortable but necessary for intellectual honesty.",
+      "data_collection_year": 2022,
+      "published_date": "2023-01-01"
     }
-
   ]
 }
