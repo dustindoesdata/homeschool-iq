@@ -12,7 +12,7 @@ in one honest, filterable dashboard so you can see what the data
 actually says, not what advocates on either side want you to hear.
 
 [![Status](https://img.shields.io/badge/Status-In%20Progress-yellow?style=flat-square)]()
-[![Sources](https://img.shields.io/badge/Sources-100%20Verified-blue?style=flat-square)]()
+[![Sources](https://img.shields.io/badge/Sources-64%20Verified-blue?style=flat-square)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
@@ -58,16 +58,16 @@ positive findings is not a research project — it's a sales pitch.
 ## How the Data Is Sourced
 
 Every stat in the dashboard comes from a verified source across
-four credibility tiers. All 100 sources passed a 20-pass
+four credibility tiers. All 64 sources confirmed live in the first full scrape run (March 2026). Each passed a 20-pass
 analytical review for live URL, HTML scrapability, tier accuracy,
 paywall-free access, and homeschool relevance.
 
 | Tier | Count | Examples |
 |---|---|---|
-| 🏛️ Government | 15 | NCES, U.S. Census, Johns Hopkins Institute for Education Policy, HHS |
-| 🔬 Peer-Reviewed | 33 | PLOS ONE, NHERI research, Cardus Education Survey, Nature/Scientific Reports, ERIC |
-| 📢 Advocacy | 18 | HSLDA (pro), CRHE (critical), EdChoice, NEA |
-| 📰 News | 34 | NPR, PBS NewsHour, The Hill, Education Week, AP News, The Atlantic |
+| 🏛️ Government | 9 | NCES, U.S. Census, HHS, ACF |
+| 🔬 Peer-Reviewed | 25 | PLOS ONE, NHERI research, Nature/Scientific Reports, ERIC, Pew Research |
+| 📢 Advocacy | 15 | HSLDA (pro), CRHE (critical), EdChoice, NSCAF |
+| 📰 News | 15 | NPR, Education Week, Education Next, The 74, CNA |
 
 Every data point is labeled with its source and a credibility grade
 so you always know how much weight to give it. Advocacy sources are
