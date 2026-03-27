@@ -1,0 +1,163 @@
+{
+  "run_timestamp": "2026_03_27_065259",
+  "run_start": "2026-03-27T06:52:59Z",
+  "run_end": "2026-03-27T07:25:43Z",
+  "duration_seconds": 1964.3,
+  "sources_attempted": 100,
+  "sources_succeeded": 70,
+  "sources_failed": 30,
+  "sources_skipped": 0,
+  "output_file": "data/raw/2026_03_27_065259.json",
+  "failed_sources": [
+    {
+      "source_id": "jhu_growth_2025",
+      "url": "https://education.jhu.edu/edpolicy/policy-research-initiatives/homeschool-hub/homeschool-growth-2024-2025/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "jhu_hub_main",
+      "url": "https://education.jhu.edu/edpolicy/policy-research-initiatives/homeschool-hub/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "jhu_gifted",
+      "url": "https://education.jhu.edu/edpolicy/policy-research-initiatives/homeschool-hub/homeschooling-gifted-students/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "cardus_2025",
+      "url": "https://www.cardus.ca/research/education/reports/diverse-outcomes-for-a-diverse-population/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nea_educator_pay",
+      "url": "https://www.nea.org/resource-library/educator-pay-and-school-funding",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "thehill_001",
+      "url": "https://thehill.com/homenews/education/5499157-homeschool-regulations-minnesota-new-jersey-montana-wyoming/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "thehill_enrollment_2024",
+      "url": "https://thehill.com/homenews/education/4886917-homeschool-enrollment-states-covid-pandemic/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "wttw_illinois",
+      "url": "https://news.wttw.com/2025/03/25/parents-advocates-push-back-against-efforts-have-more-oversight-homeschooling-illinois",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "time_black_families",
+      "url": "https://time.com/6151375/black-families-homeschooling/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "npm_families_still",
+      "url": "https://www.npr.org/2022/08/07/1115492150/homeschooling-pandemic-schools",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "edweek_states_regulating",
+      "url": "https://www.edweek.org/policy-politics/states-are-moving-to-regulate-homeschooling-heres-where-things-stand/2024/02",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "ap_news_pandemic",
+      "url": "https://apnews.com/article/homeschooling-pandemic-surge-education",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "fordham_new_picture",
+      "url": "https://fordhaminstitute.org/national/commentary/new-picture-modern-homeschooling-america",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "stand_together_boom",
+      "url": "https://standtogether.org/stories/education/the-rise-of-homeschooling-whats-driving-the-boom",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "the_atlantic_darkest",
+      "url": "https://www.theatlantic.com/ideas/archive/2020/04/homeschoolings-darkest-side/610555/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_motivation_factors",
+      "url": "https://nheri.org/home-school-researcher-four-key-barriers-affecting-the-choice-to-homeschool-evidence-from-a-fragile-community/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_socialization_revisited",
+      "url": "https://nheri.org/homeschooling-and-the-question-of-socialization-revisited/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_culture_transmission",
+      "url": "https://nheri.org/transmission-of-culture-religion-and-affinity-for-four-school-choices-to-adults/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_child_abuse_school",
+      "url": "https://nheri.org/public-school-private-school-and-homeschool-child-abuse-neglect-and-fatalities/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_homeschool_parent_study",
+      "url": "https://nheri.org/the-home-educating-parent-a-profile-and-motivations/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "hslda_covid_surge",
+      "url": "https://hslda.org/post/families-are-choosing-homeschooling",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "hslda_college_prep",
+      "url": "https://hslda.org/post/the-college-adventure-begins",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "ap_kindergarten_lag",
+      "url": "https://apnews.com/article/education-covid-pandemic-schools-enrollment-kindergarten",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "edweek_overview_homeschool",
+      "url": "https://www.edweek.org/policy-politics/homeschooling/2021",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "chalkbeat_homeschool",
+      "url": "https://www.chalkbeat.org/2023/8/14/23830980/homeschooling-public-school-enrollment-decline-pandemic/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "hechinger_homeschool",
+      "url": "https://hechingerreport.org/the-homeschooling-surge-that-wont-quit/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "wapo_who_homeschools",
+      "url": "https://www.washingtonpost.com/education/interactive/2023/homeschooling-growth-data-by-district/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_peer_review_summary",
+      "url": "https://nheri.org/what-research-says-about-homeschooling-and-academic-achievement/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "nheri_public_private_abuse",
+      "url": "https://nheri.org/educator-sexual-misconduct-in-public-and-private-schools-vs-homeschools/",
+      "reason": "all retries exhausted"
+    },
+    {
+      "source_id": "npr_homeschool_regulation_surge",
+      "url": "https://www.npr.org/2021/09/06/1033688753/home-schooling-is-surging-what-role-should-government-play",
+      "reason": "all retries exhausted"
+    }
+  ]
+}
