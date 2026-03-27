@@ -12,6 +12,7 @@ in one honest, filterable dashboard so you can see what the data
 actually says, not what advocates on either side want you to hear.
 
 [![Status](https://img.shields.io/badge/Status-In%20Progress-yellow?style=flat-square)]()
+[![Sources](https://img.shields.io/badge/Sources-100%20Verified-blue?style=flat-square)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
@@ -56,21 +57,23 @@ positive findings is not a research project — it's a sales pitch.
 
 ## How the Data Is Sourced
 
-Every stat in the dashboard comes from one of these sources:
+Every stat in the dashboard comes from a verified source across
+four credibility tiers. All 100 sources passed a 20-pass
+analytical review for live URL, HTML scrapability, tier accuracy,
+paywall-free access, and homeschool relevance.
 
-| Source | Type |
-|---|---|
-| National Center for Education Statistics (NCES) | U.S. Government |
-| U.S. Census Bureau | U.S. Government |
-| National Home Education Research Institute (NHERI) | Research Organization |
-| PLOS ONE | Peer-Reviewed Journal |
-| Home School Legal Defense Association (HSLDA) | Advocacy Organization |
-| Education Week | Education Journalism |
+| Tier | Count | Examples |
+|---|---|---|
+| 🏛️ Government | 15 | NCES, U.S. Census, Johns Hopkins Institute for Education Policy, HHS |
+| 🔬 Peer-Reviewed | 33 | PLOS ONE, NHERI research, Cardus Education Survey, Nature/Scientific Reports, ERIC |
+| 📢 Advocacy | 18 | HSLDA (pro), CRHE (critical), EdChoice, NEA |
+| 📰 News | 34 | NPR, PBS NewsHour, The Hill, Education Week, AP News, The Atlantic |
 
 Every data point is labeled with its source and a credibility grade
 so you always know how much weight to give it. Advocacy sources are
-included deliberately — but they are graded and flagged so they
-cannot mislead.
+included deliberately — but they are graded and flagged, and both
+pro-homeschool (HSLDA) and critical (CRHE) voices are represented
+so neither side can run unopposed.
 
 ---
 
@@ -113,12 +116,13 @@ quality bar.
 
 | Phase | Status | Description |
 |---|---|---|
-| Research Design | ✅ Complete | Questions defined, sources identified, data model built |
-| Data Collection | ✅ Complete | 6 of 10 sources scraped — 4 dead URLs being resolved |
-| Data Validation | ✅ Complete | 6/6 records passed quality checks |
-| Data Cleaning | 🔄 In Progress | Extracting and structuring stats from validated data |
-| Analysis | ⬜ Upcoming | EDA, findings written alongside the data |
-| Dashboard | ⬜ Upcoming | Interactive charts, filters, source transparency |
+| Phase 0 — Contracts | ✅ Complete | Schema, sources, data dictionary, cleaning rules, findings framework |
+| Phase 1 — Scaffold | ✅ Complete | Scraper, validator, cleaner built and committed |
+| Phase 2 — Scrape & Validate | ✅ Complete | Pipeline proven end-to-end; first full run complete |
+| Source Expansion | ✅ Complete | 100 sources verified across 4 tiers; 20-pass analytical review |
+| Phase 2b — Full Scrape | 🔄 Next | Re-scrape all 100 sources; validate and clean output |
+| Phase 3 — Analysis | ⬜ Upcoming | EDA, findings written alongside the data |
+| Phase 4 — Dashboard | ⬜ Upcoming | Interactive charts, filters, source transparency |
 | Launch | ⬜ Upcoming | Live on Streamlit Community Cloud |
 
 ---
@@ -144,10 +148,11 @@ Each step feeds the next. Output lands in `data/` at each stage:
 
 | Step | Output location | What it contains |
 |---|---|---|
-| Scrape | `data/raw/` | Raw page text from each source |
+| Scrape | `data/raw/` | Raw page text from each source, timestamped JSON |
 | Validate | `data/cleaned/` | Validated records ready for cleaning |
 | Clean | `data/cleaned/` | Structured stats CSV ready for the database |
 | Logs | `data/logs/` | Run manifests and validation reports |
+| Quarantine | `data/quarantine/` | Records that failed validation |
 
 ### Project Structure
 
@@ -155,7 +160,7 @@ Each step feeds the next. Output lands in `data/` at each stage:
 homeschool-iq/
 ├── scraper/
 │   ├── scrape_sources.py   # Fetches pages from all active sources
-│   └── sources.json        # Source list with credibility grades
+│   └── sources.json        # 100-source registry with credibility grades
 ├── validation/
 │   └── validate_raw.py     # Quality checks on scraped output
 ├── cleaning/
@@ -181,6 +186,27 @@ homeschool-iq/
 ```bash
 pip3 install -r requirements.txt
 ```
+
+### Source Registry
+
+[`scraper/sources.json`](https://github.com/dustindoesdata/homeschool-iq/blob/main/scraper/sources.json) contains all 100 verified sources. For a human-readable table of every source, see [`docs/SOURCES.md`](https://github.com/dustindoesdata/homeschool-iq/blob/main/docs/SOURCES.md).
+
+Each JSON entry includes:
+
+- `id` — unique source identifier
+- `publisher` — organization that produced the content
+- `title` — full source title
+- `url` — direct URL to the scrapable HTML page
+- `credibility_tier` — `government` | `peer_reviewed` | `advocacy` | `news`
+- `methodology_grade` — `A` (controlled study) → `D` (anecdotal)
+- `expected_sentiment_skew` — `positive` | `critical` | `neutral`
+- `scrape_mode` — `html` (all 100 current sources are HTML)
+- `active` — boolean; deactivated sources are kept for history
+
+All 100 active sources passed a 20-pass analytical review covering:
+URL liveness, HTML scrapability, no paywalls, correct credibility tier,
+accurate methodology grade, no duplicates, stat-sentence yield, and
+homeschool research relevance.
 
 ### Technical Documentation
 
