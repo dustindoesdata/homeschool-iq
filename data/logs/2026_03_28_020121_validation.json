@@ -1,0 +1,54 @@
+{
+  "validated_at": "2026-03-28T02:01:21.130505+00:00",
+  "scrape_filepath": "data/raw/2026_03_27_065259.json",
+  "total_records": 100,
+  "scrape_succeeded": 70,
+  "scrape_failed": 30,
+  "scrape_skipped": 0,
+  "validation_passed": 64,
+  "validation_failed": 6,
+  "quarantine_detail": [
+    {
+      "source_id": "nces_2024_report",
+      "failure_reasons": [
+        "raw_text too short: 169 chars (minimum 500)",
+        "source_id 'nces_2024_report' not found in sources.json"
+      ]
+    },
+    {
+      "source_id": "nces_2019_brief",
+      "failure_reasons": [
+        "raw_text too short: 169 chars (minimum 500)",
+        "source_id 'nces_2019_brief' not found in sources.json"
+      ]
+    },
+    {
+      "source_id": "pbs_black_families_2022",
+      "failure_reasons": [
+        "raw_text too short: 82 chars (minimum 500)",
+        "source_id 'pbs_black_families_2022' not found in sources.json"
+      ]
+    },
+    {
+      "source_id": "pbs_schools_reopen",
+      "failure_reasons": [
+        "raw_text too short: 67 chars (minimum 500)",
+        "source_id 'pbs_schools_reopen' not found in sources.json"
+      ]
+    },
+    {
+      "source_id": "pbs_rise_pandemic_impact",
+      "failure_reasons": [
+        "raw_text too short: 98 chars (minimum 500)",
+        "source_id 'pbs_rise_pandemic_impact' not found in sources.json"
+      ]
+    },
+    {
+      "source_id": "nces_school_choice_2019",
+      "failure_reasons": [
+        "raw_text too short: 169 chars (minimum 500)",
+        "source_id 'nces_school_choice_2019' not found in sources.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "quarantined_at": "2026-03-28T02:01:21.129210+00:00",
+  "failure_reasons": [
+    "raw_text too short: 169 chars (minimum 500)",
+    "source_id 'nces_2024_report' not found in sources.json"
+  ],
+  "record": {
+    "source_id": "nces_2024_report",
+    "title": "NCES — Parent and Family Involvement in Education: 2023 (Full Report)",
+    "publisher": "National Center for Education Statistics",
+    "url": "https://nces.ed.gov/pubsearch/pubsinfo.asp?pubid=2024113",
+    "credibility_tier": "government",
+    "methodology_grade": "A",
+    "expected_sentiment_skew": "neutral",
+    "status": "success",
+    "status_code": 200,
+    "raw_text": "NCES Resources | IES Skip to main content NCES Resources Explore our large variety of products and find relevant data and information. icon-dot-gov icon-https icon-quote",
+    "char_count": 169,
+    "scraped_at": "2026-03-27T06:53:09.028560+00:00"
+  }
+}

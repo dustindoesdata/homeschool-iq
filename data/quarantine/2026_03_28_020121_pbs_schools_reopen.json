@@ -1,0 +1,21 @@
+{
+  "quarantined_at": "2026-03-28T02:01:21.130044+00:00",
+  "failure_reasons": [
+    "raw_text too short: 67 chars (minimum 500)",
+    "source_id 'pbs_schools_reopen' not found in sources.json"
+  ],
+  "record": {
+    "source_id": "pbs_schools_reopen",
+    "title": "PBS NewsHour — As Schools Reopen, Will Black and Asian Families Return? (2021)",
+    "publisher": "PBS NewsHour",
+    "url": "https://www.pbs.org/newshour/education/as-schools-reopen-will-black-and-asian-families-return",
+    "credibility_tier": "news",
+    "methodology_grade": "C",
+    "expected_sentiment_skew": "neutral",
+    "status": "success",
+    "status_code": 200,
+    "raw_text": "As schools reopen, will Black and Asian families return? | PBS News",
+    "char_count": 67,
+    "scraped_at": "2026-03-27T06:58:56.772988+00:00"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "quarantined_at": "2026-03-28T02:01:21.129833+00:00",
+  "failure_reasons": [
+    "raw_text too short: 82 chars (minimum 500)",
+    "source_id 'pbs_black_families_2022' not found in sources.json"
+  ],
+  "record": {
+    "source_id": "pbs_black_families_2022",
+    "title": "PBS NewsHour — As Schools Reopen, Many Families Continue Homeschooling (2022)",
+    "publisher": "PBS NewsHour / Associated Press",
+    "url": "https://www.pbs.org/newshour/education/as-u-s-schools-reopen-many-families-continue-to-opt-for-homeschooling",
+    "credibility_tier": "news",
+    "methodology_grade": "C",
+    "expected_sentiment_skew": "neutral",
+    "status": "success",
+    "status_code": 200,
+    "raw_text": "As U.S. schools reopen, many families continue to opt for homeschooling | PBS News",
+    "char_count": 82,
+    "scraped_at": "2026-03-27T06:57:06.328710+00:00"
+  }
+}

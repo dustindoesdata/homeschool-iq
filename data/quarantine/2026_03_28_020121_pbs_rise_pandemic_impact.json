@@ -1,0 +1,21 @@
+{
+  "quarantined_at": "2026-03-28T02:01:21.130153+00:00",
+  "failure_reasons": [
+    "raw_text too short: 98 chars (minimum 500)",
+    "source_id 'pbs_rise_pandemic_impact' not found in sources.json"
+  ],
+  "record": {
+    "source_id": "pbs_rise_pandemic_impact",
+    "title": "PBS NewsHour — How Homeschooling's Rise Has Impacted Traditional School Enrollment (2023)",
+    "publisher": "PBS NewsHour",
+    "url": "https://www.pbs.org/newshour/show/how-homeschoolings-rise-during-the-pandemic-has-impacted-traditional-school-enrollment",
+    "credibility_tier": "news",
+    "methodology_grade": "C",
+    "expected_sentiment_skew": "neutral",
+    "status": "success",
+    "status_code": 200,
+    "raw_text": "How homeschooling's rise during the pandemic has impacted traditional school enrollment | PBS News",
+    "char_count": 98,
+    "scraped_at": "2026-03-27T06:59:03.639516+00:00"
+  }
+}

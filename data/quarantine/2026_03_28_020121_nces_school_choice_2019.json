@@ -1,0 +1,21 @@
+{
+  "quarantined_at": "2026-03-28T02:01:21.130275+00:00",
+  "failure_reasons": [
+    "raw_text too short: 169 chars (minimum 500)",
+    "source_id 'nces_school_choice_2019' not found in sources.json"
+  ],
+  "record": {
+    "source_id": "nces_school_choice_2019",
+    "title": "NCES — Families' Participation in School Choice and Importance of Factors (2019, released 2024)",
+    "publisher": "National Center for Education Statistics",
+    "url": "https://nces.ed.gov/pubsearch/pubsinfo.asp?pubid=2023085",
+    "credibility_tier": "government",
+    "methodology_grade": "A",
+    "expected_sentiment_skew": "neutral",
+    "status": "success",
+    "status_code": 200,
+    "raw_text": "NCES Resources | IES Skip to main content NCES Resources Explore our large variety of products and find relevant data and information. icon-dot-gov icon-https icon-quote",
+    "char_count": 169,
+    "scraped_at": "2026-03-27T06:59:19.972318+00:00"
+  }
+}
