@@ -33,7 +33,7 @@ Usage:
     make transform
 """
 
-# Last updated: 2026-03-21
+# Last updated: 2026-03-27
 
 import json
 import os
@@ -59,9 +59,14 @@ COST_KEYWORDS = [
 ]
 
 SOCIAL_KEYWORDS = [
-    "social", "peer", "friend", "anxiety", "emotion",
+    "social", "peer pressure", "peer group", "peer interaction",
+    "peer relationship", "friend", "anxiety", "emotion",
     "clique", "interact", "isolat",
 
+    # Note: bare "peer" intentionally excluded — it matches "peer-reviewed"
+    # and misroutes academic literature stats to Social-Emotional.
+    # Use specific peer-related phrases instead.
+    #
     # Note: "civic" intentionally excluded — civic engagement stats
     # route to Outcomes, not Social-Emotional.
 ]
@@ -233,8 +238,11 @@ STAT_REGEX = re.compile(
     re.IGNORECASE
 )
 
-# Compiled pattern to exclude year numbers from numeric extraction
-YEAR_REGEX = re.compile(r'\b(?:19|20)\d{2}\b')
+# Compiled pattern to exclude year numbers from numeric extraction.
+# Matches full 4-digit years (1900–2099) and year-range suffixes
+# like "2022–23" or "2018-19" as complete units, so the trailing
+# "23" or "19" is not extracted as a standalone number.
+YEAR_REGEX = re.compile(r'\b(?:19|20)\d{2}(?:[–\-]\d{2})?\b')
 
 # Boilerplate patterns — matches navigation, legal, and non-content text
 SKIP_REGEX = re.compile(
@@ -274,10 +282,15 @@ def extract_stat_sentences(raw_text):
 def extract_numeric_value(sentence):
     """
     Extract the first numeric value and unit from a sentence.
-    Excludes 4-digit year numbers (1900–2099) to prevent years
-    being stored as stat values.
+    Excludes 4-digit year numbers (1900–2099) and year-range suffixes
+    (e.g. "2022–23") to prevent years being stored as stat values.
+    Strips URLs before extraction to prevent domain names containing
+    numbers (e.g. "the74million.org") from being parsed as stats.
     Returns (numeric_value, unit) or (None, None).
     """
+    # Strip URLs before any numeric matching
+    sentence = re.sub(r'https?://\S+', '', sentence)
+    sentence = re.sub(r'\b\w+\.(?:org|com|gov|edu|net)\S*', '', sentence)
     # Percentage
     pct_match = re.search(r'(\d+\.?\d*)\s*%', sentence)
     if pct_match:
@@ -295,11 +308,16 @@ def extract_numeric_value(sentence):
     if million_match:
         return float(million_match.group(1)) * 1_000_000, "count"
 
+    # Percent written out (e.g. "3.4 percent")
+    pct_written_match = re.search(r'(\d+\.?\d*)\s*percent', sentence, re.IGNORECASE)
+    if pct_written_match:
+        return float(pct_written_match.group(1)), "%"
+
     # Plain number — only if sentence has a stat signal, and
-    # after removing year numbers to avoid extracting e.g. 2019
+    # after removing year numbers and year-range suffixes
     if STAT_REGEX.search(sentence):
         sentence_no_years = YEAR_REGEX.sub("", sentence)
-        num_match = re.search(r'\b(\d[\d,]*)\b', sentence_no_years)
+        num_match = re.search(r'\b(\d[\d,]*\.?\d*)\b', sentence_no_years)
         if num_match:
             return float(num_match.group(1).replace(",", "")), "count"
 
