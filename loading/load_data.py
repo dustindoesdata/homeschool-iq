@@ -20,25 +20,19 @@ Usage:
 
 Notes:
   - Idempotent: re-running overwrites the database cleanly.
-    The database is rebuilt from scratch on every run, not appended to.
-    This keeps the DB in sync with the CSV without collision handling.
-  - Foreign keys are enforced via PRAGMA foreign_keys = ON.
+  - Foreign keys enforced via PRAGMA foreign_keys = ON.
   - source_id in the CSV is the string scraper key (e.g. 'nces_003'),
     not the integer DB primary key. This script resolves the mapping.
-  - category_id in the CSV is an integer (1-5) mapping to the
-    categories table seeded by schema.sql.
+  - metric_key and subject columns support dashboard comparison queries.
 """
 
 # Last updated: 2026-03-27
 
 import csv
 import glob
-import json
 import logging
 import os
-import re
 import sqlite3
-from datetime import datetime, timezone
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -59,11 +53,6 @@ log = logging.getLogger(__name__)
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def find_latest_csv(directory):
-    """
-    Return the path of the most recent *_stats.csv in directory.
-    Alphabetical sort works because filenames use zero-padded UTC timestamps.
-    Raises FileNotFoundError if none exist.
-    """
     files = sorted(glob.glob(os.path.join(directory, "*_stats.csv")))
     if not files:
         raise FileNotFoundError(
@@ -74,17 +63,12 @@ def find_latest_csv(directory):
 
 
 def load_csv(filepath):
-    """
-    Load stats CSV and return list of row dicts.
-    Handles empty string → None coercion for nullable fields.
-    """
     rows = []
     with open(filepath, encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # Coerce empty strings to None for nullable DB fields
             for key in row:
-                if row[key] == "":
+                if row[key] == "" or row[key] == "None":
                     row[key] = None
             rows.append(row)
     log.info(f"Loaded {len(rows)} rows from {filepath}")
@@ -92,11 +76,6 @@ def load_csv(filepath):
 
 
 def init_db(conn, schema_path):
-    """
-    Apply schema.sql to a fresh database connection.
-    Uses CREATE TABLE IF NOT EXISTS so re-runs are safe.
-    Categories are seeded via INSERT OR IGNORE in the schema.
-    """
     with open(schema_path, encoding="utf-8") as f:
         schema_sql = f.read()
     conn.executescript(schema_sql)
@@ -105,11 +84,7 @@ def init_db(conn, schema_path):
 
 
 def coerce_numeric(value):
-    """
-    Coerce a string numeric value to float, or None if missing/invalid.
-    The CSV QUOTE_ALL format sometimes writes 'None' as a string.
-    """
-    if value is None or value in ("", "None"):
+    if value is None:
         return None
     try:
         return float(value)
@@ -118,8 +93,7 @@ def coerce_numeric(value):
 
 
 def coerce_int(value):
-    """Coerce to int, or None if missing/invalid."""
-    if value is None or value in ("", "None"):
+    if value is None:
         return None
     try:
         return int(float(value))
@@ -127,47 +101,16 @@ def coerce_int(value):
         return None
 
 
-def resolve_category_id(raw_id, category_map):
-    """
-    The CSV stores category_id as an integer string (1–5).
-    Map it to the DB integer PK from the seeded categories table.
-    category_map is {1: 1, 2: 2, ...} built from the categories table.
-    Returns None if the value is invalid — row will be skipped.
-    """
-    try:
-        return category_map.get(int(float(raw_id)))
-    except (ValueError, TypeError):
-        return None
-
-
-# ── Core load logic ───────────────────────────────────────────────────────────
-
 def build_category_map(conn):
-    """
-    Return a dict mapping category integer position → DB id.
-    The schema seeds categories in a fixed order:
-      1→Academic, 2→Social-Emotional, 3→Cost, 4→Outcomes, 5→Critique
-    This map lets the loader translate CSV category_id (1-5) to DB PKs.
-    """
-    cursor = conn.execute("SELECT id, name FROM categories ORDER BY id")
+    cursor = conn.execute("SELECT id FROM categories ORDER BY id")
     rows   = cursor.fetchall()
-
-    # Map by insertion order (id 1 = Academic, etc.)
-    position_map = {}
-    for db_id, name in rows:
-        position_map[db_id] = db_id  # categories are seeded 1-5, so identity map
-    return position_map
+    return {row[0]: row[0] for row in rows}
 
 
 def upsert_source(conn, row, source_cache):
-    """
-    Insert source if not already seen (by URL), return its integer PK.
-    source_cache: dict mapping source_url → db_id to avoid duplicate inserts.
-    """
     url = row.get("source_url")
     if not url:
         return None
-
     if url in source_cache:
         return source_cache[url]
 
@@ -189,7 +132,6 @@ def upsert_source(conn, row, source_cache):
         )
     )
 
-    # If INSERT OR IGNORE was a no-op (URL already existed), fetch existing id
     if cursor.lastrowid == 0:
         cursor = conn.execute("SELECT id FROM sources WHERE url = ?", (url,))
         db_id = cursor.fetchone()[0]
@@ -201,23 +143,22 @@ def upsert_source(conn, row, source_cache):
 
 
 def insert_stat(conn, row, source_db_id, category_map):
-    """
-    Insert one stat row. Returns True on success, False if skipped.
-    Skips rows with missing required fields or invalid category_id.
-    """
     stat_text = row.get("stat_text")
     if not stat_text:
         return False
 
-    category_id = resolve_category_id(row.get("category_id"), category_map)
+    try:
+        category_id = category_map.get(int(float(row.get("category_id", 0))))
+    except (ValueError, TypeError):
+        category_id = None
+
     if category_id is None:
-        log.warning(f"  Skipping row — invalid category_id: {row.get('category_id')!r}")
+        log.warning(f"  Skipping — invalid category_id: {row.get('category_id')!r}")
         return False
 
-    sentiment = row.get("sentiment") or "neutral"
-    era       = row.get("era")
+    era = row.get("era")
     if not era:
-        log.warning(f"  Skipping row — missing era: {stat_text[:60]!r}")
+        log.warning(f"  Skipping — missing era: {stat_text[:60]!r}")
         return False
 
     conn.execute(
@@ -225,8 +166,10 @@ def insert_stat(conn, row, source_db_id, category_map):
         INSERT INTO stats
             (stat_text, numeric_value, unit, value_type, sample_size,
              category_id, sentiment, era, selection_bias_flag,
-             semantic_cluster, conflicts_with, source_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             semantic_cluster, conflicts_with,
+             metric_key, subject,
+             source_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stat_text,
@@ -235,11 +178,13 @@ def insert_stat(conn, row, source_db_id, category_map):
             row.get("value_type"),
             coerce_int(row.get("sample_size")),
             category_id,
-            sentiment,
+            row.get("sentiment") or "neutral",
             era,
             coerce_int(row.get("selection_bias_flag")) or 0,
             row.get("semantic_cluster"),
             coerce_int(row.get("conflicts_with")),
+            row.get("metric_key"),
+            row.get("subject"),
             source_db_id,
         )
     )
@@ -249,10 +194,6 @@ def insert_stat(conn, row, source_db_id, category_map):
 # ── Reporting ─────────────────────────────────────────────────────────────────
 
 def print_summary(conn):
-    """
-    Print a post-load summary: row counts by category, tier, era, sentiment.
-    This is the first real look at what the dashboard will have to work with.
-    """
     log.info("")
     log.info("=" * 60)
     log.info("DATABASE SUMMARY")
@@ -266,64 +207,69 @@ def print_summary(conn):
     log.info("")
     log.info("  By category:")
     rows = conn.execute("""
-        SELECT c.name, COUNT(s.id) as n
-        FROM stats s
-        JOIN categories c ON c.id = s.category_id
-        GROUP BY c.name
-        ORDER BY n DESC
+        SELECT c.name, COUNT(s.id)
+        FROM stats s JOIN categories c ON c.id = s.category_id
+        GROUP BY c.name ORDER BY COUNT(s.id) DESC
     """).fetchall()
     for name, count in rows:
-        bar = "█" * (count // 5)
-        log.info(f"    {name:<20} {count:>4}  {bar}")
+        log.info(f"    {name:<22} {count:>4}")
+
+    log.info("")
+    log.info("  By metric_key (top 15):")
+    rows = conn.execute("""
+        SELECT metric_key, COUNT(*) as n, COUNT(DISTINCT subject) as subjects
+        FROM stats WHERE metric_key IS NOT NULL
+        GROUP BY metric_key ORDER BY n DESC LIMIT 15
+    """).fetchall()
+    for metric, count, subjects in rows:
+        log.info(f"    {metric:<35} {count:>4} rows  {subjects} subjects")
+
+    log.info("")
+    log.info("  By subject:")
+    rows = conn.execute("""
+        SELECT subject, COUNT(*) as n FROM stats
+        WHERE subject IS NOT NULL
+        GROUP BY subject ORDER BY n DESC
+    """).fetchall()
+    for subject, count in rows:
+        log.info(f"    {subject:<25} {count:>4}")
+
+    log.info("")
+    log.info("  Comparison-ready (metric_key + both subjects):")
+    rows = conn.execute("""
+        SELECT metric_key,
+               GROUP_CONCAT(DISTINCT subject) as subjects,
+               COUNT(*) as n
+        FROM stats
+        WHERE metric_key IS NOT NULL AND subject IS NOT NULL
+        GROUP BY metric_key
+        HAVING COUNT(DISTINCT subject) >= 2
+        ORDER BY n DESC
+    """).fetchall()
+    if rows:
+        for metric, subjects, count in rows:
+            log.info(f"    {metric:<35} [{subjects}]  {count} rows")
+    else:
+        log.info("    None yet — run cleaner against full source set")
 
     log.info("")
     log.info("  By credibility tier:")
     rows = conn.execute("""
-        SELECT src.credibility_tier, COUNT(s.id) as n
-        FROM stats s
-        JOIN sources src ON src.id = s.source_id
-        GROUP BY src.credibility_tier
-        ORDER BY n DESC
+        SELECT src.credibility_tier, COUNT(s.id)
+        FROM stats s JOIN sources src ON src.id = s.source_id
+        GROUP BY src.credibility_tier ORDER BY COUNT(s.id) DESC
     """).fetchall()
     for tier, count in rows:
-        log.info(f"    {tier:<20} {count:>4}")
-
-    log.info("")
-    log.info("  By era:")
-    rows = conn.execute("""
-        SELECT era, COUNT(*) as n FROM stats GROUP BY era ORDER BY era
-    """).fetchall()
-    for era, count in rows:
-        log.info(f"    {era:<20} {count:>4}")
-
-    log.info("")
-    log.info("  By sentiment:")
-    rows = conn.execute("""
-        SELECT sentiment, COUNT(*) as n FROM stats GROUP BY sentiment ORDER BY n DESC
-    """).fetchall()
-    for sentiment, count in rows:
-        log.info(f"    {sentiment:<20} {count:>4}")
+        log.info(f"    {tier:<22} {count:>4}")
 
     log.info("")
     log.info("  Selection bias breakdown:")
     rows = conn.execute("""
-        SELECT selection_bias_flag, COUNT(*) as n FROM stats GROUP BY selection_bias_flag
+        SELECT selection_bias_flag, COUNT(*) FROM stats GROUP BY selection_bias_flag
     """).fetchall()
     for flag, count in rows:
-        label = "flagged (no controls)" if flag else "clean (controls documented)"
+        label = "flagged" if flag else "clean"
         log.info(f"    flag={flag}  {count:>4}  {label}")
-
-    log.info("")
-    log.info("  Category × Era (row counts):")
-    rows = conn.execute("""
-        SELECT c.name, s.era, COUNT(*) as n
-        FROM stats s
-        JOIN categories c ON c.id = s.category_id
-        GROUP BY c.name, s.era
-        ORDER BY c.name, s.era
-    """).fetchall()
-    for name, era, count in rows:
-        log.info(f"    {name:<20} {era:<16} {count:>4}")
 
     log.info("=" * 60)
 
@@ -338,7 +284,6 @@ def main():
     csv_path = find_latest_csv(CLEANED_DIR)
     rows     = load_csv(csv_path)
 
-    # Build fresh DB — wipe and rebuild for idempotency
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
         log.info(f"Removed existing database: {DB_PATH}")
@@ -349,28 +294,24 @@ def main():
     init_db(conn, SCHEMA_PATH)
 
     category_map = build_category_map(conn)
-    source_cache = {}  # url → db integer PK
+    source_cache = {}
 
-    inserted  = 0
-    skipped   = 0
+    inserted = 0
+    skipped  = 0
 
     for row in rows:
         source_db_id = upsert_source(conn, row, source_cache)
         if source_db_id is None:
-            log.warning(f"  Skipping row — no source URL: {row.get('stat_text', '')[:50]!r}")
             skipped += 1
             continue
-
-        ok = insert_stat(conn, row, source_db_id, category_map)
-        if ok:
+        if insert_stat(conn, row, source_db_id, category_map):
             inserted += 1
         else:
             skipped += 1
 
     conn.commit()
 
-    log.info("")
-    log.info(f"CSV rows processed : {len(rows)}")
+    log.info(f"\nCSV rows processed : {len(rows)}")
     log.info(f"Stats inserted     : {inserted}")
     log.info(f"Rows skipped       : {skipped}")
     log.info(f"Sources loaded     : {len(source_cache)}")

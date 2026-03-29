@@ -556,6 +556,31 @@ def is_comparison_sentence(sentence):
     return 1
 
 
+def assign_category(sentence):
+    """
+    Assign a category_id based on sentence content.
+    category_id: 1=Academic  2=Social-Emotional  3=Cost
+                 4=Outcomes  5=Critique
+
+    Priority order (first match wins):
+      Cost → Social-Emotional → Critique → Outcomes → Academic
+
+    Cost is checked before Outcomes intentionally — a sentence about
+    college tuition costs belongs in Cost, not Outcomes.
+    """
+    s = sentence.lower()
+
+    if any(w in s for w in COST_KEYWORDS):
+        return 3
+    if any(w in s for w in SOCIAL_KEYWORDS):
+        return 2
+    if any(w in s for w in CRITIQUE_KEYWORDS):
+        return 5
+    if any(w in s for w in OUTCOMES_KEYWORDS):
+        return 4
+    return 1
+
+
 def assign_sentiment(sentence, _expected_skew):
     """
     Assign sentiment based primarily on sentence content.

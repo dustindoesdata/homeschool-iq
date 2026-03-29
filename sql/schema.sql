@@ -116,6 +116,28 @@ CREATE TABLE IF NOT EXISTS stats (
     --   returning duplicate pairs. See docs/cleaning_rules.md.
     conflicts_with        INTEGER REFERENCES stats(id),
 
+    -- Comparison fields
+    -- metric_key groups rows measuring the same thing across subjects.
+    -- subject identifies who the number describes.
+    -- Together they enable side-by-side dashboard comparisons:
+    --   SELECT metric_key, subject, AVG(numeric_value)
+    --   FROM stats WHERE metric_key = 'per_pupil_cost'
+    --   GROUP BY subject
+    metric_key            TEXT,
+    --   Controlled vocabulary — see METRIC_KEYS in clean_data.py.
+    --   NULL = metric not identified (sentence-level stat only).
+
+    subject               TEXT CHECK(
+                              subject IS NULL OR subject IN (
+                                  'homeschool', 'public_school',
+                                  'black_homeschool', 'black_public',
+                                  'hispanic_homeschool', 'hispanic_public',
+                                  'all_students', 'general_population'
+                              )
+                          ),
+    --   Who the numeric_value describes.
+    --   NULL = subject not identified from sentence context.
+
     -- Provenance
     source_id             INTEGER NOT NULL REFERENCES sources(id),
 
@@ -133,6 +155,8 @@ CREATE INDEX IF NOT EXISTS idx_stats_sentiment   ON stats(sentiment);
 CREATE INDEX IF NOT EXISTS idx_stats_era         ON stats(era);
 CREATE INDEX IF NOT EXISTS idx_stats_category    ON stats(category_id);
 CREATE INDEX IF NOT EXISTS idx_stats_source      ON stats(source_id);
+CREATE INDEX IF NOT EXISTS idx_stats_metric      ON stats(metric_key);
+CREATE INDEX IF NOT EXISTS idx_stats_subject     ON stats(subject);
 
 
 -- ============================================================
