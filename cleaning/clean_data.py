@@ -660,7 +660,7 @@ def _split_subjects(sentence, values):
     return subjects
 
 
-
+def main():
     timestamp = datetime.now(timezone.utc).strftime("%Y_%m_%d_%H%M%S")
 
     log.info("=" * 60)
