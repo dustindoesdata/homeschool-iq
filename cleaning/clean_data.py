@@ -138,13 +138,21 @@ METRIC_PATTERNS = {
         "four-year degree", "completed a degree",
         "completed a bachelor",
     ],
+    # BUG #2 FIX: 'earning' removed — too broad, fires on "distance learning" sentences.
+    # Replace with more specific income phrases only.
     "household_income": [
         "household income", "income above", "income below",
-        "earning", "annual income", "median income",
+        "annual income", "median income",
         "incomes above the median", "household incomes",
+        "earned income", "earnings above",   # specific enough
     ],
     "employment_rate": [
-        "employed", "not working", "employment", "workforce"
+        # BUG #3 FIX: Added education context guards — "employed" alone fires
+        # on unrelated sentences (e.g. fishing boats, lab equipment).
+        "homeschool.*employ", "homeschool.*work",
+        "not working", "were not working",
+        "employed.*homeschool", "homeschool.*workforce",
+        "adult.*employment", "graduate.*employ",
     ],
     "extracurricular_participation": [
         "sports team", "sport class", "extracurricular",
@@ -187,7 +195,12 @@ METRIC_PATTERNS = {
 
 # ── Subject detection ─────────────────────────────────────────────────────────
 # Maps subject → keyword signals in priority order.
-# Checked in order — first match wins.
+# Checked in order — FIRST MATCH WINS.
+# CRITICAL ordering rules:
+#   1. "non-homeschooler" MUST come before "homeschool" — both words appear
+#      in Cardus comparison sentences; if "homeschool" is checked first it
+#      always wins even in "non-homeschoolers" fragments.
+#   2. Demographic-specific subjects (black_homeschool) before general ones.
 # Subjects must match the CHECK constraint in schema.sql.
 
 SUBJECT_PATTERNS = {
@@ -207,18 +220,22 @@ SUBJECT_PATTERNS = {
         "hispanic public school", "hispanic student",
         "latino student"
     ],
+    # BUG #1 FIX: "non-homeschooler" BEFORE "homeschool" in priority order.
+    # These map to public_school as the comparison group in Cardus sentences.
+    "public_school": [
+        "non-homeschooler", "non-home-schooled", "non-homeschool",  # MUST be first
+        "public school", "public-school", "institutional school",
+        "traditionally schooled", "conventionally schooled",
+        "those in institutional",
+        "publicly schooled", "publicly-schooled",
+        "elementary and secondary",
+        "those who attended institutional",
+        "per pupil nationally",              # BUG #4 FIX: "$18,614 nationally" → public
+        "per pupil in public",
+    ],
     "homeschool": [
         "homeschool", "home-educated", "home educated",
         "home school", "homeschooled", "homeschooler"
-    ],
-    "public_school": [
-        "public school", "public-school", "institutional school",
-        "traditionally schooled", "conventionally schooled",
-        "non-homeschool", "those in institutional",
-        "publicly schooled", "publicly-schooled",
-        "elementary and secondary",
-        "non-homeschooler", "non-home-schooled",
-        "those who attended institutional",
     ],
     "general_population": [
         "general population", "national average", "all americans",
@@ -228,6 +245,7 @@ SUBJECT_PATTERNS = {
         "all students", "all school-age", "k-12 students",
         "school-age children"
     ],
+
 }
 
 
@@ -398,13 +416,30 @@ def extract_stat_sentences(raw_text):
     return stat_sentences
 
 
-def extract_numeric_value(sentence):
+def extract_numeric_value(sentence, metric_key=None):
     """
     Extract the first numeric value and unit from a sentence.
-    Excludes 4-digit year numbers (1900–2099) to prevent years
-    being stored as stat values.
+    Excludes 4-digit year numbers (1900-2099) and year-range suffixes.
+    Strips URLs before extraction.
+
+    metric_key hint: when provided, adjusts extraction priority.
+    enrollment_count sentences prefer million/count over percentage.
+
     Returns (numeric_value, unit) or (None, None).
     """
+    # Strip URLs
+    sentence = re.sub(r'https?://\S+', '', sentence)
+    sentence = re.sub(r'\b\w+\.(?:org|com|gov|edu|net)\S*', '', sentence)
+
+    # BUG #5 FIX: For enrollment_count, try million BEFORE percentage
+    if metric_key == "enrollment_count":
+        million_match = re.search(r'(\d+\.?\d*)\s*million', sentence, re.IGNORECASE)
+        if million_match:
+            return float(million_match.group(1)) * 1_000_000, "count"
+        billion_match = re.search(r'(\d+\.?\d*)\s*billion', sentence, re.IGNORECASE)
+        if billion_match:
+            return float(billion_match.group(1)) * 1_000_000_000, "count"
+
     # Percentage
     pct_match = re.search(r'(\d+\.?\d*)\s*%', sentence)
     if pct_match:
@@ -416,17 +451,19 @@ def extract_numeric_value(sentence):
         return float(dollar_match.group(1).replace(",", "")), "USD"
 
     # Millions
-    million_match = re.search(
-        r'(\d+\.?\d*)\s*million', sentence, re.IGNORECASE
-    )
+    million_match = re.search(r'(\d+\.?\d*)\s*million', sentence, re.IGNORECASE)
     if million_match:
         return float(million_match.group(1)) * 1_000_000, "count"
 
-    # Plain number — only if sentence has a stat signal, and
-    # after removing year numbers to avoid extracting e.g. 2019
+    # Percent written out
+    pct_written_match = re.search(r'(\d+\.?\d*)\s*percent', sentence, re.IGNORECASE)
+    if pct_written_match:
+        return float(pct_written_match.group(1)), "%"
+
+    # Plain number after removing years
     if STAT_REGEX.search(sentence):
         sentence_no_years = YEAR_REGEX.sub("", sentence)
-        num_match = re.search(r'\b(\d[\d,]*)\b', sentence_no_years)
+        num_match = re.search(r'\b(\d[\d,]*\.?\d*)\b', sentence_no_years)
         if num_match:
             return float(num_match.group(1).replace(",", "")), "count"
 
@@ -792,7 +829,7 @@ def main():
                     continue  # skip the single-value fallback below
 
             # Single-value path — standard extraction
-            numeric_value, unit = extract_numeric_value(sentence)
+            numeric_value, unit = extract_numeric_value(sentence, metric_key=metric_key)
             subject             = detect_subject(sentence)
             base_row["numeric_value"] = numeric_value
             base_row["unit"]          = unit
