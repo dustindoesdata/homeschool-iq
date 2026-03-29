@@ -33,7 +33,7 @@ Usage:
     make transform
 """
 
-# Last updated: 2026-03-27
+# Last updated: 2026-03-21
 
 import json
 import os
@@ -59,14 +59,9 @@ COST_KEYWORDS = [
 ]
 
 SOCIAL_KEYWORDS = [
-    "social", "peer pressure", "peer group", "peer interaction",
-    "peer relationship", "friend", "anxiety", "emotion",
+    "social", "peer", "friend", "anxiety", "emotion",
     "clique", "interact", "isolat",
 
-    # Note: bare "peer" intentionally excluded — it matches "peer-reviewed"
-    # and misroutes academic literature stats to Social-Emotional.
-    # Use specific peer-related phrases instead.
-    #
     # Note: "civic" intentionally excluded — civic engagement stats
     # route to Outcomes, not Social-Emotional.
 ]
@@ -108,7 +103,134 @@ NEUTRAL_GROWTH_WORDS = [
     "increased", "doubled", "grew", "rise", "surge"
 ]
 
-# ── Logging setup ─────────────────────────────────────────────────────────────
+# ── Metric key detection ──────────────────────────────────────────────────────
+# Maps metric_key → list of keyword signals.
+# First match wins. Order matters — more specific patterns first.
+# metric_key values must match the CHECK constraint in schema.sql.
+
+METRIC_PATTERNS = {
+    "per_pupil_cost": [
+        "per pupil", "per student", "per-pupil", "per-student",
+        "cost per", "spend per", "expenditure per"
+    ],
+    "standardized_test_score": [
+        "percentile point", "standardized", "achievement test",
+        "test score", "sat score", "act score", "clt score",
+        "score above", "scoring above", "score below",
+        "50th percentile", "public school average is",
+    ],
+    "academic_achievement_studies": [
+        "peer-reviewed studies on academic", "studies show homeschool",
+        "studies on academic achievement"
+    ],
+    "social_emotional_studies": [
+        "peer-reviewed studies on social", "studies on social",
+        "social, emotional", "emotional, and psychological"
+    ],
+    "adult_outcomes_studies": [
+        "peer-reviewed studies on success", "studies on success into adulthood",
+        "success into adulthood"
+    ],
+    # bachelor_degree_rate and household_income MUST come before enrollment_rate —
+    # "percent" in Cardus sentences would otherwise fire enrollment_rate
+    "bachelor_degree_rate": [
+        "bachelor", "bachelor's degree", "college degree",
+        "four-year degree", "completed a degree",
+        "completed a bachelor",
+    ],
+    "household_income": [
+        "household income", "income above", "income below",
+        "earning", "annual income", "median income",
+        "incomes above the median", "household incomes",
+    ],
+    "employment_rate": [
+        "employed", "not working", "employment", "workforce"
+    ],
+    "extracurricular_participation": [
+        "sports team", "sport class", "extracurricular",
+        "participated in sports", "afterschool club",
+        "school-based activit",
+    ],
+    "civic_engagement": [
+        "volunteer", "volunteering", "civic", "voting", "town hall",
+        "community service", "community engagement"
+    ],
+    "dropout_rate": [
+        "dropout", "drop out", "drop-out"
+    ],
+    "annual_family_cost": [
+        "families spend", "family spend", "homeschool families spend",
+        "parents spend", "annual cost of homeschool"
+    ],
+    "taxpayer_cost": [
+        "taxpayer", "tax dollar", "public fund", "billion for taxpayer",
+        "saved.*taxpayer", "taxpayer.*saved"
+    ],
+    "enrollment_rate": [
+        # Narrowed — "% of", "percent of", "enrolled" removed (too broad,
+        # fired on internet access rows and unrelated percentage sentences)
+        "households with school-age", "were homeschooled",
+        "homeschooling rate", "homeschool rate",
+        "school-age children.*homeschool",
+        "students.*homeschooled",
+        "k-12.*homeschool",
+    ],
+    "enrollment_count": [
+        "million homeschool", "million home", "homeschool students in",
+        "home-educated children", "homeschooled children",
+        "number of homeschool"
+    ],
+    "college_gpa": [
+        "college gpa", "gpa", "grade point average"
+    ],
+}
+
+# ── Subject detection ─────────────────────────────────────────────────────────
+# Maps subject → keyword signals in priority order.
+# Checked in order — first match wins.
+# Subjects must match the CHECK constraint in schema.sql.
+
+SUBJECT_PATTERNS = {
+    "black_homeschool": [
+        "black homeschool", "african american homeschool",
+        "black home-educated", "black home educated"
+    ],
+    "black_public": [
+        "black public school", "african american public school",
+        "black student", "african american student"
+    ],
+    "hispanic_homeschool": [
+        "hispanic homeschool", "hispanic home-educated",
+        "latino homeschool"
+    ],
+    "hispanic_public": [
+        "hispanic public school", "hispanic student",
+        "latino student"
+    ],
+    "homeschool": [
+        "homeschool", "home-educated", "home educated",
+        "home school", "homeschooled", "homeschooler"
+    ],
+    "public_school": [
+        "public school", "public-school", "institutional school",
+        "traditionally schooled", "conventionally schooled",
+        "non-homeschool", "those in institutional",
+        "publicly schooled", "publicly-schooled",
+        "elementary and secondary",
+        "non-homeschooler", "non-home-schooled",
+        "those who attended institutional",
+    ],
+    "general_population": [
+        "general population", "national average", "all americans",
+        "u.s. average", "us average"
+    ],
+    "all_students": [
+        "all students", "all school-age", "k-12 students",
+        "school-age children"
+    ],
+}
+
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -238,11 +360,8 @@ STAT_REGEX = re.compile(
     re.IGNORECASE
 )
 
-# Compiled pattern to exclude year numbers from numeric extraction.
-# Matches full 4-digit years (1900–2099) and year-range suffixes
-# like "2022–23" or "2018-19" as complete units, so the trailing
-# "23" or "19" is not extracted as a standalone number.
-YEAR_REGEX = re.compile(r'\b(?:19|20)\d{2}(?:[–\-]\d{2})?\b')
+# Compiled pattern to exclude year numbers from numeric extraction
+YEAR_REGEX = re.compile(r'\b(?:19|20)\d{2}\b')
 
 # Boilerplate patterns — matches navigation, legal, and non-content text
 SKIP_REGEX = re.compile(
@@ -282,15 +401,10 @@ def extract_stat_sentences(raw_text):
 def extract_numeric_value(sentence):
     """
     Extract the first numeric value and unit from a sentence.
-    Excludes 4-digit year numbers (1900–2099) and year-range suffixes
-    (e.g. "2022–23") to prevent years being stored as stat values.
-    Strips URLs before extraction to prevent domain names containing
-    numbers (e.g. "the74million.org") from being parsed as stats.
+    Excludes 4-digit year numbers (1900–2099) to prevent years
+    being stored as stat values.
     Returns (numeric_value, unit) or (None, None).
     """
-    # Strip URLs before any numeric matching
-    sentence = re.sub(r'https?://\S+', '', sentence)
-    sentence = re.sub(r'\b\w+\.(?:org|com|gov|edu|net)\S*', '', sentence)
     # Percentage
     pct_match = re.search(r'(\d+\.?\d*)\s*%', sentence)
     if pct_match:
@@ -308,23 +422,116 @@ def extract_numeric_value(sentence):
     if million_match:
         return float(million_match.group(1)) * 1_000_000, "count"
 
-    # Percent written out (e.g. "3.4 percent")
-    pct_written_match = re.search(r'(\d+\.?\d*)\s*percent', sentence, re.IGNORECASE)
-    if pct_written_match:
-        return float(pct_written_match.group(1)), "%"
-
     # Plain number — only if sentence has a stat signal, and
-    # after removing year numbers and year-range suffixes
+    # after removing year numbers to avoid extracting e.g. 2019
     if STAT_REGEX.search(sentence):
         sentence_no_years = YEAR_REGEX.sub("", sentence)
-        num_match = re.search(r'\b(\d[\d,]*\.?\d*)\b', sentence_no_years)
+        num_match = re.search(r'\b(\d[\d,]*)\b', sentence_no_years)
         if num_match:
             return float(num_match.group(1).replace(",", "")), "count"
 
     return None, None
 
 
-def assign_category(sentence):
+def detect_metric_key(sentence):
+    """
+    Assign a metric_key from METRIC_PATTERNS.
+    Returns the first matching key, or None if no pattern matches.
+    First match wins — patterns are ordered most-specific to least-specific.
+    """
+    s = sentence.lower()
+    for metric_key, signals in METRIC_PATTERNS.items():
+        if any(sig in s for sig in signals):
+            return metric_key
+    return None
+
+
+def detect_subject(sentence):
+    """
+    Detect the subject (who the number describes) from SUBJECT_PATTERNS.
+    Returns the first matching subject, or None.
+    Checks more-specific patterns (black_homeschool) before general ones
+    (homeschool) to prevent over-broad matches.
+    """
+    s = sentence.lower()
+    for subject, signals in SUBJECT_PATTERNS.items():
+        if any(sig in s for sig in signals):
+            return subject
+    return None
+
+
+def extract_all_numbers(sentence):
+    """
+    Extract ALL numeric values from a sentence, not just the first.
+    Returns a list of (numeric_value, unit) tuples.
+
+    Used for comparison sentences that contain two values —
+    e.g. "$600 [homeschool] vs $16,446 [public school]"
+    extracts [(600.0, 'USD'), (16446.0, 'USD')].
+
+    Each value is extracted with the same unit logic as extract_numeric_value():
+    percentages first, then dollars, then millions, then plain numbers.
+    Year numbers and URLs are stripped before extraction.
+    """
+    # Strip URLs
+    s = re.sub(r'https?://\S+', '', sentence)
+    s = re.sub(r'\b\w+\.(?:org|com|gov|edu|net)\S*', '', s)
+    # Strip year ranges
+    s = YEAR_REGEX.sub('', s)
+
+    results = []
+
+    # Percentages
+    for m in re.finditer(r'(\d+\.?\d*)\s*%', s):
+        results.append((float(m.group(1)), '%'))
+
+    # Dollar amounts
+    for m in re.finditer(r'\$(\d[\d,]*(?:\.\d+)?)', s):
+        results.append((float(m.group(1).replace(',', '')), 'USD'))
+
+    # Millions
+    for m in re.finditer(r'(\d+\.?\d*)\s*million', s, re.IGNORECASE):
+        results.append((float(m.group(1)) * 1_000_000, 'count'))
+
+    # Percentile written out (only if no % already found for this number)
+    if not results:
+        for m in re.finditer(r'(\d+\.?\d*)\s*percent', s, re.IGNORECASE):
+            results.append((float(m.group(1)), '%'))
+
+    # Deduplicate — same value/unit pair
+    seen = set()
+    deduped = []
+    for val, unit in results:
+        key = (round(val, 4), unit)
+        if key not in seen:
+            seen.add(key)
+            deduped.append((val, unit))
+
+    return deduped
+
+
+def is_comparison_sentence(sentence):
+    """
+    Return True if the sentence contains explicit comparison language
+    between homeschool and another group.
+    Used to decide whether to run multi-number extraction.
+    """
+    s = sentence.lower()
+    comparison_signals = [
+        "compared to", " vs ", "versus", "above", "below",
+        "higher than", "lower than", "points above", "points below",
+        "percent above", "percent below", "while.*public", "public.*while",
+        "homeschool.*public", "public.*homeschool",
+        "home-educated.*public", "public.*home-educated",
+    ]
+    has_homeschool = any(w in s for w in [
+        "homeschool", "home-educated", "home educated"
+    ])
+    has_comparison = any(sig in s for sig in comparison_signals)
+    return has_homeschool and has_comparison
+
+
+
     """
     Assign a category_id based on sentence content.
     category_id: 1=Academic  2=Social-Emotional  3=Cost
@@ -409,7 +616,51 @@ def assign_semantic_cluster(category_id, sentence):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
+def _split_subjects(sentence, values):
+    """
+    For a comparison sentence containing multiple numeric values,
+    attempt to assign a subject to each value based on sentence structure.
+
+    Strategy: split the sentence at comparison keywords, then detect
+    the subject in each fragment and assign it to the nearest number.
+
+    Returns a list of subjects parallel to the values list.
+    Falls back to detect_subject() on the full sentence if splitting fails.
+    """
+    s_lower = sentence.lower()
+
+    # Split points — common comparison structures
+    split_patterns = [
+        r'\bcompared to\b', r'\bversus\b', r'\bvs\.?\b',
+        r'\bwhile\b', r'\bwhereas\b', r'\bwhereas\b',
+        r'\b(?:public school|public-school)\b.*\b(?:homeschool|home-educated)\b',
+    ]
+
+    fragments = [sentence]
+    for pattern in split_patterns:
+        parts = re.split(pattern, sentence, flags=re.IGNORECASE)
+        if len(parts) >= 2:
+            fragments = parts
+            break
+
+    # Try to match each value to the fragment it appears in
+    subjects = []
+    for val, unit in values:
+        # Build a pattern that finds this number in text
+        val_str = str(int(val)) if val == int(val) else str(val)
+        matched_subject = None
+        for fragment in fragments:
+            if val_str in fragment or f"{val:.0f}" in fragment:
+                matched_subject = detect_subject(fragment)
+                if matched_subject:
+                    break
+        # Fall back to full sentence if no fragment match
+        subjects.append(matched_subject or detect_subject(sentence))
+
+    return subjects
+
+
+
     timestamp = datetime.now(timezone.utc).strftime("%Y_%m_%d_%H%M%S")
 
     log.info("=" * 60)
@@ -466,32 +717,26 @@ def main():
                 continue
             seen_sentences.add(normalized)
 
-            numeric_value, unit = extract_numeric_value(sentence)
-            category_id         = assign_category(sentence)
-            sentiment           = assign_sentiment(sentence, source.get("expected_sentiment_skew", "neutral"))
-            semantic_cluster    = assign_semantic_cluster(
-                category_id, sentence
-            )
+            category_id      = assign_category(sentence)
+            sentiment        = assign_sentiment(sentence, source.get("expected_sentiment_skew", "neutral"))
+            semantic_cluster = assign_semantic_cluster(category_id, sentence)
+            metric_key       = detect_metric_key(sentence)
 
             stat_text = sentence
             if is_proxy:
                 stat_text += " [era derived from published_date]"
 
-            all_stats.append({
-                # id omitted — SQLite AUTOINCREMENT assigns the real ID
+            base_row = {
                 "stat_text":            stat_text,
-                "numeric_value":        numeric_value,  # None → SQL NULL
-                "unit":                 unit,           # None → SQL NULL
-                "value_type":           None,           # analyst assigns
-                "sample_size":          None,           # analyst assigns
+                "value_type":           None,
+                "sample_size":          None,
                 "category_id":          category_id,
                 "sentiment":            sentiment,
                 "era":                  era,
                 "selection_bias_flag":  selection_bias_flag,
                 "semantic_cluster":     semantic_cluster,
-                "conflicts_with":       None,           # analyst assigns
-                # Source fields — used by load_data.py to populate
-                # the sources table before inserting stats
+                "conflicts_with":       None,
+                "metric_key":           metric_key,
                 "source_id":            source_id,
                 "source_title":         title,
                 "source_url":           url,
@@ -500,7 +745,34 @@ def main():
                 "methodology_grade":    methodology_grade,
                 "data_collection_year": data_collection_year,
                 "published_date":       published_date,
-            })
+            }
+
+            if is_comparison_sentence(sentence) and metric_key:
+                # Comparison sentence — extract all numbers and write
+                # one row per (value, subject) pair so the dashboard
+                # can query both sides of a comparison by metric_key.
+                all_values = extract_all_numbers(sentence)
+
+                if len(all_values) >= 2:
+                    # Attempt subject assignment per number by splitting
+                    # the sentence at natural comparison boundaries.
+                    subjects = _split_subjects(sentence, all_values)
+                    for (val, unit), subject in zip(all_values, subjects):
+                        row = dict(base_row)
+                        row["numeric_value"] = val
+                        row["unit"]          = unit
+                        row["subject"]       = subject
+                        all_stats.append(row)
+                    total_extracted += len(all_values) - 1  # extra rows from split
+                    continue  # skip the single-value fallback below
+
+            # Single-value path — standard extraction
+            numeric_value, unit = extract_numeric_value(sentence)
+            subject             = detect_subject(sentence)
+            base_row["numeric_value"] = numeric_value
+            base_row["unit"]          = unit
+            base_row["subject"]       = subject
+            all_stats.append(base_row)
 
     if not all_stats:
         raise RuntimeError(
@@ -515,6 +787,7 @@ def main():
         "stat_text", "numeric_value", "unit", "value_type",
         "sample_size", "category_id", "sentiment", "era",
         "selection_bias_flag", "semantic_cluster", "conflicts_with",
+        "metric_key", "subject",
         "source_id", "source_title", "source_url", "source_publisher",
         "credibility_tier", "methodology_grade",
         "data_collection_year", "published_date"
