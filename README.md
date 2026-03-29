@@ -8,7 +8,7 @@
 
 HomeschoolIQ collects published research from government agencies,
 peer-reviewed studies, and education journalism — then puts it all
-in one honest, filterable dashboard so you can see what the data
+in one honest, interactive dashboard so you can see what the data
 actually says, not what advocates on either side want you to hear.
 
 [![Status](https://img.shields.io/badge/Status-Live-brightgreen?style=flat-square)]()
@@ -35,18 +35,20 @@ self-selected success stories?
 
 ### 👥 Socialization
 The most common critique of homeschooling — examined honestly.
-The research literature actually measures five distinct things
-under the word "socialization," and they don't all point in the
-same direction. This section breaks them apart.
+Participation in sports, clubs, and community service compared
+side by side between homeschool and public school students.
 
 ### 💰 Cost
 What does homeschooling actually cost a family per year? How does
 that compare to what the public school system spends per student?
-What are the hidden costs nobody talks about?
 
 ### 🎓 Long-Term Outcomes
-College acceptance. Career outcomes. Civic engagement. How do
-homeschool graduates fare in adult life?
+Bachelor's degree attainment. Household income. How do adults
+who were homeschooled long-term compare to non-homeschoolers?
+
+### 📈 Who Is Homeschooling and Why?
+Enrollment trends over time, the pandemic surge, demographic
+breakdowns, and the reasons parents actually cite for choosing it.
 
 ### ⚠️ The Hard Truths
 The risks, the regulatory gaps, and the documented downsides.
@@ -117,7 +119,7 @@ quality bar.
 | Research Design | ✅ Complete | Questions defined, 64 verified sources, data model built |
 | Data Collection | ✅ Complete | 64 sources scraped, 334 stats extracted |
 | Data Validation | ✅ Complete | Full pipeline validated end-to-end |
-| Data Cleaning | ✅ Complete | metric_key + subject fields enable comparison charts |
+| Data Cleaning | ✅ Complete | Stats extracted with comparison fields for charting |
 | Analysis | ✅ Complete | 6 questions answered with verified data across 5 chart types |
 | Dashboard | ✅ Complete | Live on Streamlit Community Cloud |
 | Launch | ✅ **Live** | [View the dashboard →](https://homeschool-iq-4jzmxbcnpmnlz89skb6kgy.streamlit.app/) |
@@ -139,15 +141,22 @@ python3 validation/validate_raw.py
 
 # Step 3 — Extract and structure stats
 python3 cleaning/clean_data.py
+
+# Step 4 — Load stats into SQLite database
+python3 loading/load_data.py
+
+# Step 5 — Launch the dashboard
+python3 -m streamlit run dashboard/app.py
 ```
 
 Each step feeds the next. Output lands in `data/` at each stage:
 
 | Step | Output location | What it contains |
 |---|---|---|
-| Scrape | `data/raw/` | Raw page text from each source |
+| Scrape | `data/raw/` | Raw page text from each source, timestamped JSON |
 | Validate | `data/cleaned/` | Validated records ready for cleaning |
-| Clean | `data/cleaned/` | Structured stats CSV ready for the database |
+| Clean | `data/cleaned/` | Structured stats CSV with metric_key and subject fields |
+| Load | `data/homeschooliq.db` | SQLite database consumed by the dashboard |
 | Logs | `data/logs/` | Run manifests and validation reports |
 
 ### Project Structure
@@ -156,22 +165,28 @@ Each step feeds the next. Output lands in `data/` at each stage:
 homeschool-iq/
 ├── scraper/
 │   ├── scrape_sources.py   # Fetches pages from all active sources
-│   └── sources.json        # Source list with credibility grades
+│   └── sources.json        # 64-source registry with credibility grades
 ├── validation/
 │   └── validate_raw.py     # Quality checks on scraped output
 ├── cleaning/
-│   └── clean_data.py       # Extracts and structures stat sentences
+│   └── clean_data.py       # Extracts stats, assigns metric_key and subject
+├── loading/
+│   └── load_data.py        # Loads CSV into SQLite, prints summary report
+├── dashboard/
+│   └── app.py              # Streamlit dashboard — 6 questions, 5 chart types
 ├── sql/
 │   └── schema.sql          # Database schema
 ├── data/
 │   ├── raw/                # Timestamped scrape output
 │   ├── cleaned/            # Validated records and structured stats
 │   ├── logs/               # Run manifests and validation reports
-│   └── quarantine/         # Records that failed validation
+│   ├── quarantine/         # Records that failed validation
+│   └── homeschooliq.db     # SQLite database
 ├── docs/
 │   ├── data_dictionary.md  # Every field defined
 │   ├── cleaning_rules.md   # Pipeline transformation rules
-│   └── findings.md         # The analytical framework
+│   ├── findings.md         # The analytical framework
+│   └── SOURCES.md          # Full table of all 64 verified sources
 ├── requirements.txt
 ├── CONTRIBUTING.md
 └── README.md
@@ -179,9 +194,20 @@ homeschool-iq/
 
 ### Install Dependencies
 
+The dashboard requires three packages:
+
 ```bash
-pip3 install -r requirements.txt
+pip3 install streamlit pandas plotly
 ```
+
+The scraper additionally requires `requests`, `beautifulsoup4`, and `lxml`:
+
+```bash
+pip3 install requests beautifulsoup4 lxml
+```
+
+Note: `requirements.txt` in the repo root contains only the dashboard
+dependencies and is used by Streamlit Community Cloud for deployment.
 
 ### Technical Documentation
 
@@ -189,9 +215,9 @@ pip3 install -r requirements.txt
 - [`docs/cleaning_rules.md`](docs/cleaning_rules.md) — all pipeline transformation rules
 - [`docs/findings.md`](docs/findings.md) — the analytical framework
 
-The pipeline runs on Python, SQLite, pandas, and Streamlit.
-Everything is free and open source. See [`CONTRIBUTING.md`](CONTRIBUTING.md)
-to get involved.
+The pipeline runs on Python, SQLite, pandas, Streamlit, requests,
+and BeautifulSoup. Everything is free and open source.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) to get involved.
 
 ---
 
