@@ -28,4 +28,6 @@ plotly==5.20.0
 streamlit==1.33.0
 
 # ── Code Quality ──────────────────────────────────────────────
-flake8==7.0.0                 # Linting — runs via GitHub Actions on every push
+flake8==7.0.0                 # Linting — runs via GitHub Actions on every pushstreamlit
+pandas
+plotly
