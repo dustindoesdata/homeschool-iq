@@ -57,21 +57,21 @@ positive findings is not a research project — it's a sales pitch.
 
 ## How the Data Is Sourced
 
-Every stat in the dashboard comes from one of these sources:
+Every stat in the dashboard comes from one of 64 verified sources across
+four credibility tiers. The full source list is in
+[`docs/SOURCES.md`](https://github.com/dustindoesdata/homeschool-iq/blob/main/docs/SOURCES.md).
 
-| Source | Type |
-|---|---|
-| National Center for Education Statistics (NCES) | U.S. Government |
-| U.S. Census Bureau | U.S. Government |
-| National Home Education Research Institute (NHERI) | Research Organization |
-| PLOS ONE | Peer-Reviewed Journal |
-| Home School Legal Defense Association (HSLDA) | Advocacy Organization |
-| Education Week | Education Journalism |
+| Tier | Count | Includes |
+|---|---|---|
+| 🏛️ Government | 9 | NCES, U.S. Census Bureau, HHS/ACF |
+| 🔬 Peer-Reviewed | 25 | NHERI, PLOS ONE, Pew Research, Cardus, Nature, ERIC |
+| 📢 Advocacy | 15 | HSLDA (pro-homeschool), CRHE (critical), EdChoice, NEA |
+| 📰 News | 15 | NPR, PBS NewsHour, Education Week, Education Next, The 74 |
 
 Every data point is labeled with its source and a credibility grade
 so you always know how much weight to give it. Advocacy sources are
-included deliberately — but they are graded and flagged so they
-cannot mislead.
+included deliberately — both pro-homeschool (HSLDA) and critical (CRHE)
+voices are represented so neither side runs unopposed.
 
 ---
 
